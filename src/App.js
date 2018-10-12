@@ -3,23 +3,38 @@ import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
+  constructor() {
+    super();
+    this.state = {
+      todoItems: []
+    };
+  }
+  
+  handleSubmit(e) {
+    e.preventDefault();
+    
+    console.log(`submitted`);
+  }
+  
   render() {
     return (
       <div className="App">
+       
         <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+          <h1>To Do App Oct 12 2018</h1>
         </header>
+        
+        <form action="" onSubmit={this.handleSubmit}>
+          <label htmlFor="todo-item">To Do Item</label>
+          <input id="todo-item" name="todo-item" type="text"/>
+          
+          <button>Submit</button>
+        </form>
+
+        <ul>
+          <li>Item1</li>
+        </ul>
+
       </div>
     );
   }
