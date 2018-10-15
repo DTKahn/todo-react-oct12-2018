@@ -1,22 +1,46 @@
 import React, { Component } from 'react';
 import './App.css';
+import firebase from './components/firebase';
 
 import TodoItem from './components/TodoItem';
+
+const dbRef = firebase.database().ref('todoItems');
+// const dbRef = firebase.database().ref();
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      todoItems: [{value: "Get Milk", completed: false}],
+      todoItems: [],
       todoItem: ""
     };
+  }
+
+  componentDidMount() {
+    dbRef.on('value', snapshot => {
+
+      const data = snapshot.val();
+      
+      if(data !== null) {
+        const newState = Object.keys(data).map(key => {
+          
+          return {
+            key,
+            data: data[key]
+          }
+        });
+
+        this.setState({ todoItems: newState })
+
+      }
+    });
   }
   
   handleSubmit = e => {
     e.preventDefault();
 
     if(this.state.todoItem.length === 0) {
-      return;
+      return; 
     }
     
     const newTodo = {
@@ -24,15 +48,18 @@ class App extends Component {
       completed: false
     }
 
-    // get copy of todoItems
-    // Ryan's recommendation
-    const todoItems = Array.from(this.state.todoItems);
+    // Removing as now location will be firebase:
+    // // get copy of todoItems
+    // // Ryan's recommendation
+    // const todoItems = Array.from(this.state.todoItems);
+    // // Add new item to the clone
+    // todoItems.push(newTodo);
 
-    // Add new item to the clone
-    todoItems.push(newTodo);
+    // Pushes new todo to firebase
+    dbRef.push(newTodo);
 
     // set todoItems in state to the copy of todoItems and reset todoItem to an empty string so that additional items can be added
-    this.setState({ todoItems, todoItem: "" })
+    this.setState({ todoItem: "" })
   }
 
   handleChange = e => {
@@ -43,17 +70,15 @@ class App extends Component {
     this.setState({ [e.target.name]: e.target.value })
   }
 
-  toggleCompleted = itemClicked => {
-    console.log(itemClicked);
-
-    const todoItems = Array.from(this.state.todoItems);
-    const todoIndex = todoItems.findIndex(item => item.value === itemClicked.value);
+  toggleCompleted = keyClicked => {
     
-    todoItems[todoIndex].completed === true ?
-      todoItems[todoIndex].completed = false :
-      todoItems[todoIndex].completed = true;
+    dbRef.child(keyClicked).once('value', snapshot => {
+      console.log(snapshot.val());
 
-    this.setState({ todoItems })
+      const data = snapshot.val();
+
+      dbRef.child(keyClicked).update({ completed: data.completed === false ? true : false });
+    });
   }
   
   render() {
@@ -80,7 +105,7 @@ class App extends Component {
         <ul>
           {this.state.todoItems.map(item => {
             return <TodoItem 
-              key={item.value} 
+              key={item.key} 
               todo={item}
               toggleCompleted={this.toggleCompleted}
             />
